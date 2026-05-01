@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sampah Pintar</title>
+
+    <!-- Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Config & Animations -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        amber: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+                        surface: '#f0fdf4' /* Latar belakang hijau sangat muda agar segar */
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.05)',
+                        'glow': '0 0 20px rgba(16, 185, 129, 0.4)',
+                        'float': '0 20px 40px -10px rgba(0,0,0,0.1)',
+                        'header': '0 10px 30px -10px rgba(16, 185, 129, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulseSoft { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+        @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeOut { from { opacity: 1; visibility: visible; } to { opacity: 0; visibility: hidden; } }
+        @keyframes fadeIn { from { opacity: 0; visibility: hidden; } to { opacity: 1; visibility: visible; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes bounceIn { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        .animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-right { animation: slideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-zoom-in { animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-pulse-soft { animation: pulseSoft 3s ease-in-out infinite; }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        
+        .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        
+        .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        .splash-spin { animation: spinSlow 4s linear infinite; }
+        
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots {
+            0%, 20% { color: rgba(255,255,255,0); text-shadow: .25em 0 0 rgba(255,255,255,0), .5em 0 0 rgba(255,255,255,0); }
+            40% { color: inherit; text-shadow: .25em 0 0 rgba(255,255,255,0), .5em 0 0 rgba(255,255,255,0); }
+            60% { text-shadow: .25em 0 0 inherit, .5em 0 0 rgba(255,255,255,0); }
+            80%, 100% { text-shadow: .25em 0 0 inherit, .5em 0 0 inherit; }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        * { -webkit-tap-highlight-color: transparent; outline: none !important; }
+        
+        /* Glassmorphism utilities */
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); }
+    </style>
+</head>
+<body class="bg-surface min-h-screen font-sans text-gray-800 overflow-hidden selection:bg-emerald-200 selection:text-emerald-900 relative">
+
+    <!-- ==================== 1. SPLASH SCREEN ==================== -->
+    <div id="splash-screen" class="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-800 z-[100] flex flex-col items-center justify-center text-white w-full h-full overflow-hidden">
+        <!-- Decorative bg elements -->
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse-soft"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse-soft" style="animation-delay: 1.5s;"></div>
+
+        <div class="relative w-36 h-36 flex items-center justify-center mb-8 animate-float">
+            <svg class="absolute inset-0 w-full h-full splash-spin text-emerald-200 opacity-60" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="100 200" stroke-linecap="round"></circle>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="50 150" stroke-linecap="round" class="opacity-50" transform="rotate(45 50 50)"></circle>
+            </svg>
+            <div class="w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.3)] z-10 overflow-hidden p-4">
+                <img src="logo_new.png" alt="Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <i class="fa-solid fa-leaf text-6xl text-emerald-500" style="display: none;"></i>
+            </div>
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-2 animate-slide-up drop-shadow-lg" style="animation-delay: 0.1s; opacity: 0;">Sampah Pintar</h1>
+        <p class="text-emerald-100 font-medium mb-12 animate-slide-up md:text-xl tracking-wide opacity-90" style="animation-delay: 0.2s; opacity: 0;">Solusi Cerdas Hijaukan Bumi</p>
+        <div class="absolute bottom-12 flex flex-col items-center animate-slide-up" style="animation-delay: 0.4s; opacity: 0;">
+            <p class="text-xs text-emerald-200 font-bold tracking-[0.2em] uppercase bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm"><span class="loading-dots">Memuat</span></p>
+        </div>
+    </div>
+
+    <!-- ==================== 2. LOGIN SCREEN ==================== -->
+    <div id="login-screen" class="hidden absolute inset-0 z-[60] bg-surface flex flex-col lg:flex-row w-full h-full overflow-hidden">
+        <!-- Dynamic Background Elements for Login -->
+        <div class="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-gradient-to-br from-emerald-200 to-teal-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse-soft z-0 pointer-events-none"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-gradient-to-tr from-amber-100 to-orange-50 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-pulse-soft z-0 pointer-events-none" style="animation-delay: 2s;"></div>
+
+        <div class="h-64 lg:h-full lg:w-1/2 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 rounded-b-[3rem] lg:rounded-none lg:rounded-r-[4rem] p-8 md:p-12 lg:p-16 flex flex-col justify-end lg:justify-center relative overflow-hidden shadow-2xl z-10">
+            <!-- Decorative overlay pattern -->
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
+            <i class="fa-solid fa-leaf absolute -right-10 -top-10 md:-right-20 md:-top-20 text-9xl md:text-[25rem] text-white opacity-10 animate-float" style="animation-duration: 6s;"></i>
+            
+            <div class="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-md rounded-2xl lg:rounded-[2rem] flex items-center justify-center shadow-lg border border-white/30 mb-4 lg:mb-8 overflow-hidden z-10 p-2">
+                <img src="logo_new.png" alt="Logo" class="w-full h-full object-contain drop-shadow-md" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <i class="fa-solid fa-leaf text-3xl md:text-4xl text-white" style="display: none;"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight z-10 drop-shadow-md">Mulai Perubahan<br>Hari Ini!</h1>
+            <p class="text-emerald-50 mt-2 md:mt-4 lg:text-xl font-light z-10 opacity-90 max-w-sm">Mari belajar menyelamatkan bumi bersama dari langkah terkecil.</p>
+        </div>
+
+        <div class="flex-1 lg:w-1/2 flex items-center justify-center px-4 md:px-8 pt-8 pb-6 overflow-y-auto no-scrollbar z-10 relative">
+            <div class="w-full max-w-md lg:max-w-lg glass p-8 md:p-10 lg:p-12 rounded-[2.5rem] shadow-soft border border-white">
+                <div class="text-center md:text-left mb-8">
+                    <h2 class="text-2xl lg:text-3xl font-black text-gray-800">Masuk ke Akun</h2>
+                    <p class="text-sm text-gray-500 mt-2">Silakan isi data diri untuk melanjutkan</p>
+                </div>
+                
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-6">
+                    <div class="space-y-2 animate-slide-up" style="animation-delay: 0.1s; opacity: 0;">
+                        <label class="text-xs font-bold text-gray-500 ml-2 uppercase tracking-wider">Nama Lengkap</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-500"><i class="fa-solid fa-user text-gray-400 group-focus-within:text-emerald-500 transition-colors"></i></div>
+                            <input type="text" id="input-name" required placeholder="Contoh: Budi Santoso" class="w-full pl-11 pr-4 py-4 bg-white/80 border-2 border-emerald-50 rounded-2xl focus:outline-none focus:ring-0 focus:border-emerald-500 transition-all font-semibold text-gray-800 placeholder-gray-400 shadow-sm">
+                        </div>
+                    </div>
+                    <div class="space-y-2 animate-slide-up" style="animation-delay: 0.2s; opacity: 0;">
+                        <label class="text-xs font-bold text-gray-500 ml-2 uppercase tracking-wider">Email Aktif</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-500"><i class="fa-solid fa-envelope text-gray-400 group-focus-within:text-emerald-500 transition-colors"></i></div>
+                            <input type="email" id="input-email" required placeholder="budi@email.com" class="w-full pl-11 pr-4 py-4 bg-white/80 border-2 border-emerald-50 rounded-2xl focus:outline-none focus:ring-0 focus:border-emerald-500 transition-all font-semibold text-gray-800 placeholder-gray-400 shadow-sm">
+                        </div>
+                    </div>
+                    <div class="pt-6 animate-slide-up" style="animation-delay: 0.3s; opacity: 0;">
+                        <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg py-4 rounded-2xl shadow-glow hover:shadow-lg active:scale-[0.98] transition-all duration-300 flex justify-center items-center gap-3 group relative overflow-hidden">
+                            <span class="relative z-10 flex items-center gap-2">Mulai Belajar <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+                            <!-- Shine effect -->
+                            <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <style> @keyframes shimmer { 100% { transform: translateX(100%); } } </style>
+
+    <!-- ==================== 3. MODALS ==================== -->
+    <div id="logout-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center w-full h-full">
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="cancelLogout()"></div>
+        <div class="bg-white rounded-[2.5rem] p-8 w-[90%] md:w-full max-w-sm relative z-10 shadow-2xl animate-zoom-in text-center flex flex-col items-center border border-white">
+            <div class="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-red-100">
+                <i class="fa-solid fa-arrow-right-from-bracket text-3xl text-red-500 animate-pulse-soft"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-800 mb-2">Keluar Aplikasi?</h3>
+            <p class="text-sm text-gray-500 mb-8 leading-relaxed">Progres belajarmu akan tersimpan otomatis. Yakin ingin keluar?</p>
+            <div class="flex gap-4 w-full">
+                <button onclick="cancelLogout()" class="flex-1 py-3.5 rounded-2xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">Batal</button>
+                <button onclick="executeLogout()" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 active:scale-95 transition-all">Ya, Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-profile-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center w-full h-full">
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeEditProfileModal()"></div>
+        <div class="bg-white rounded-[2.5rem] p-8 w-[90%] md:w-full max-w-sm relative z-10 shadow-2xl animate-zoom-in flex flex-col border border-white">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-black text-gray-800">Edit Profil</h3>
+                <button onclick="closeEditProfileModal()" class="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200 hover:rotate-90 transition-all duration-300">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-5 mb-8">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 ml-2 uppercase tracking-wider">Nama Lengkap</label>
+                    <div class="relative mt-2">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-user text-emerald-500"></i></div>
+                        <input type="text" id="edit-input-name" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-500 font-semibold text-gray-800 transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 ml-2 uppercase tracking-wider">Email Aktif</label>
+                    <div class="relative mt-2">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-envelope text-emerald-500"></i></div>
+                        <input type="email" id="edit-input-email" class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-emerald-500 font-semibold text-gray-800 transition-all">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4 w-full">
+                <button onclick="closeEditProfileModal()" class="flex-1 py-3.5 rounded-2xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all text-sm">Batal</button>
+                <button onclick="saveProfile()" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-glow active:scale-95 transition-all text-sm">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peringatan Kuis -->
+    <div id="quiz-warning-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center w-full h-full">
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeQuizWarningModal()"></div>
+        <div class="bg-white rounded-[2.5rem] p-8 w-[90%] md:w-full max-w-sm relative z-10 shadow-2xl animate-zoom-in text-center flex flex-col items-center">
+            <div class="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center mb-6 border border-amber-100 shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500 animate-pulse"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-800 mb-2">Sedang Kuis!</h3>
+            <p class="text-sm text-gray-500 mb-8 leading-relaxed">Selesaikan kuis ini terlebih dahulu sebelum berpindah halaman.</p>
+            <div class="flex w-full">
+                <button onclick="closeQuizWarningModal()" class="w-full py-3.5 rounded-2xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/30 active:scale-95 transition-all">Lanjutkan Kuis</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 4. MAIN APP LAYOUT ==================== -->
+    <div id="main-app" class="flex flex-col lg:flex-row w-full h-screen opacity-0 hidden bg-surface relative overflow-hidden">
+        
+        <!-- Background Decor Main App -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-200/30 rounded-full filter blur-3xl opacity-60 z-0 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-200/20 rounded-full filter blur-3xl opacity-60 z-0 pointer-events-none"></div>
+
+        <!-- Desktop Sidebar (Tampil di layar besar / Desktop) -->
+        <aside class="hidden lg:flex flex-col w-72 bg-white/90 backdrop-blur-xl border-r border-gray-100 h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.03)] relative flex-shrink-0">
+            <div class="p-8 flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 overflow-hidden p-1.5">
+                    <img src="logo_new.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <i class="fa-solid fa-leaf text-white text-2xl" style="display: none;"></i>
+                </div>
+                <h2 class="text-2xl font-black tracking-tight text-gray-800">Sampah Pintar</h2>
+            </div>
+            
+            <div class="flex-1 py-4 px-6 space-y-3 mt-4 overflow-y-auto no-scrollbar">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2 mb-4">Menu Utama</p>
+                <button onclick="switchMainTab('home')" data-target="home" class="nav-btn-desktop w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-header transition-all duration-300 relative overflow-hidden group">
+                    <i class="fa-solid fa-house w-6 text-center text-xl group-hover:scale-110 transition-transform"></i><span>Beranda</span>
+                </button>
+                <button onclick="switchMainTab('learn')" data-target="learn" class="nav-btn-desktop w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-300 relative overflow-hidden group">
+                    <i class="fa-solid fa-book-open w-6 text-center text-xl group-hover:scale-110 transition-transform"></i><span>Belajar</span>
+                </button>
+                <button onclick="switchMainTab('quiz')" data-target="quiz" class="nav-btn-desktop w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-300 relative overflow-hidden group">
+                    <i class="fa-solid fa-gamepad w-6 text-center text-xl group-hover:scale-110 transition-transform"></i><span>Kuis Cerdas</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <button onclick="switchMainTab('settings')" data-target="settings" class="nav-btn-desktop w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-300 relative overflow-hidden group">
+                    <i class="fa-solid fa-gear w-6 text-center text-xl group-hover:rotate-90 transition-transform duration-500"></i><span>Pengaturan</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col h-full relative overflow-hidden z-10 w-full">
+            
+            <!-- HEADER BARU (Gradasi Menarik, Tidak Sama dengan Background) -->
+            <!-- Di Mobile: Melayang di atas (sticky). Di Desktop: Melayang sebagai Card (margin) -->
+            <header id="app-header" class="sticky top-0 lg:top-4 z-30 flex justify-between items-center px-5 py-4 lg:px-8 lg:py-4 bg-gradient-to-r from-emerald-600 to-teal-700 shadow-header lg:rounded-[2rem] lg:mx-8 transition-all duration-300 flex-shrink-0">
+                
+                <!-- Pola Dekoratif Header -->
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:16px_16px] lg:rounded-[2rem] pointer-events-none"></div>
+
+                <div class="flex items-center gap-4 group cursor-pointer relative z-10" onclick="switchMainTab('settings')">
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-user text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-[10px] lg:text-xs text-emerald-100 font-bold uppercase tracking-wider mb-0.5">Halo, Pejuang Bumi!</h2>
+                        <h1 id="display-name-header" class="text-base lg:text-xl font-black text-white truncate w-40 md:w-auto drop-shadow-sm">Budi Santoso</h1>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20">
+                        <i class="fa-solid fa-star text-amber-300 animate-pulse"></i>
+                        <span class="text-white font-bold text-sm">Level 4</span>
+                    </div>
+                    
+                    <button onclick="toggleSound()" id="sound-btn" class="w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 hover:scale-105 border border-white/30 shadow-inner">
+                        <i class="fa-solid fa-volume-high text-lg"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Scrollable Content Area -->
+            <main class="flex-1 overflow-y-auto no-scrollbar relative pb-32 lg:pb-10 w-full px-4 md:px-8 lg:px-8 pt-6" id="main-content">
+                
+                <!-- VIEW: HOME -->
+                <div id="view-home" class="view-section space-y-6 md:space-y-8 animate-slide-up block max-w-7xl mx-auto">
+                    
+                    <!-- Hero Banner -->
+                    <div class="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-800 p-6 md:p-10 lg:p-12 text-white shadow-float group">
+                        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:24px_24px]"></div>
+                        <div class="absolute -right-10 -top-10 md:right-0 md:-top-10 opacity-10 group-hover:scale-110 transition-transform duration-700 ease-out animate-float"><i class="fa-solid fa-leaf text-[12rem] md:text-[18rem]"></i></div>
+                        
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+                            <div class="flex-1">
+                                <h3 class="text-2xl md:text-3xl lg:text-4xl font-black mb-2 md:mb-3 leading-tight">Aktivis Lingkungan</h3>
+                                <p class="text-sm md:text-base opacity-90 font-medium max-w-md">Terus perluas wawasanmu untuk menjaga dan menyelamatkan bumi kita.</p>
+                            </div>
+                            
+                            <div class="bg-white/10 backdrop-blur-md p-5 md:p-6 rounded-3xl border border-white/20 min-w-[200px] text-center md:text-left">
+                                <p class="text-[10px] md:text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Total Poin</p>
+                                <div class="flex items-baseline justify-center md:justify-start gap-2">
+                                    <span class="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400 drop-shadow-sm">1.250</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats Grid (Responsif: 2 kolom HP/Tablet, 4 kolom Desktop) -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                        <div onclick="openLearnTab('materi')" class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 border border-emerald-50 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                            <div class="w-12 h-12 md:w-14 md:h-14 bg-blue-50 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-blue-500 transition-colors duration-300 shadow-inner">
+                                <i class="fa-solid fa-book-open text-blue-500 group-hover:text-white text-xl md:text-2xl transition-colors"></i>
+                            </div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Materi</p><p class="text-xl md:text-3xl font-black text-gray-800">3</p></div>
+                        </div>
+                        <div onclick="switchMainTab('quiz')" class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 border border-emerald-50 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                            <div class="w-12 h-12 md:w-14 md:h-14 bg-amber-50 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-amber-500 transition-colors duration-300 shadow-inner">
+                                <i class="fa-solid fa-trophy text-amber-500 group-hover:text-white text-xl md:text-2xl transition-colors"></i>
+                            </div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Kuis</p><p class="text-xl md:text-3xl font-black text-gray-800">10</p></div>
+                        </div>
+                        <div onclick="openLearnTab('video')" class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 border border-emerald-50 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                            <div class="w-12 h-12 md:w-14 md:h-14 bg-purple-50 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-purple-500 transition-colors duration-300 shadow-inner">
+                                <i class="fa-solid fa-video text-purple-500 group-hover:text-white text-xl md:text-2xl transition-colors"></i>
+                            </div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Video</p><p class="text-xl md:text-3xl font-black text-gray-800">3</p></div>
+                        </div>
+                        <div class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 border border-emerald-50 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-default group">
+                            <div class="w-12 h-12 md:w-14 md:h-14 bg-red-50 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-red-500 transition-colors duration-300 shadow-inner">
+                                <i class="fa-solid fa-fire text-red-500 group-hover:text-white text-xl md:text-2xl transition-colors"></i>
+                            </div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Hari Aktif</p><p class="text-xl md:text-3xl font-black text-gray-800">14</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Continue Learning Card -->
+                    <div class="pt-2 md:pt-4">
+                        <div class="flex justify-between items-center mb-4 md:mb-5">
+                            <h3 class="text-xl md:text-2xl font-black text-gray-800">Lanjutkan Belajar</h3>
+                            <button onclick="switchMainTab('learn')" class="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-100/50 px-3 py-1.5 rounded-lg">Lihat Semua <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+                        </div>
+                        <div onclick="openLearnTab('video')" class="bg-white p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-soft border border-emerald-50 flex flex-col md:flex-row md:items-center gap-4 md:gap-6 cursor-pointer hover:shadow-header hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300 group w-full lg:w-3/4 xl:w-2/3 relative overflow-hidden">
+                            <div class="w-full md:w-40 h-40 md:h-28 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-inner">
+                                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300"></div>
+                                <div class="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform z-10 border border-white/40">
+                                    <i class="fa-solid fa-play text-white text-xl ml-1"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 space-y-2 md:space-y-3">
+                                <span class="text-[10px] font-black text-purple-600 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5 uppercase tracking-wider"><i class="fa-solid fa-clapperboard"></i> Video Terakhir</span>
+                                <h4 class="font-black text-gray-800 text-lg md:text-xl leading-tight group-hover:text-purple-600 transition-colors">Perjalanan Sampah Plastik di Lautan</h4>
+                                <div class="flex items-center gap-3 md:gap-4 mt-2">
+                                    <div class="flex-1 bg-gray-100 h-2 md:h-2.5 rounded-full overflow-hidden">
+                                        <div class="bg-purple-500 w-[40%] h-full rounded-full relative"><div class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div></div>
+                                    </div>
+                                    <span class="text-xs md:text-sm font-bold text-gray-500">40%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: LEARN -->
+                <div id="view-learn" class="view-section space-y-6 md:space-y-8 hidden max-w-7xl mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-4 lg:mb-8 bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-gray-800 mb-1 lg:mb-2 flex items-center gap-3"><i class="fa-solid fa-book-open text-emerald-500"></i> Pusat Edukasi</h2>
+                            <p class="text-sm lg:text-base text-gray-500 font-medium">Pilih materi bacaan atau video interaktif.</p>
+                        </div>
+                        <div class="flex bg-gray-50 p-1.5 rounded-2xl w-full lg:w-[400px] border border-gray-100 relative mt-2 lg:mt-0">
+                            <button onclick="switchLearnTab('materi')" id="tab-materi" class="flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 bg-white text-emerald-600 shadow-sm border border-gray-100 relative z-10">Materi Bacaan</button>
+                            <button onclick="switchLearnTab('video')" id="tab-video" class="flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 text-gray-400 hover:text-gray-700 relative z-10 border border-transparent">Video Belajar</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Responsif Grid: 1 Kolom HP, 2 Kolom Tablet, 3 Kolom Desktop -->
+                    <div id="list-materi" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 block"></div>
+                    <div id="list-video" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 hidden"></div>
+                </div>
+
+                <!-- VIEW: QUIZ -->
+                <div id="view-quiz" class="view-section hidden h-full w-full">
+                    <div id="quiz-container" class="h-full w-full flex flex-col overflow-y-auto no-scrollbar relative md:pt-4"></div>
+                </div>
+
+                <!-- VIEW: SETTINGS -->
+                <div id="view-settings" class="view-section space-y-6 md:space-y-8 hidden max-w-3xl mx-auto pb-10">
+                    <div class="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm mb-6">
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-gray-800 mb-1 flex items-center gap-3"><i class="fa-solid fa-gear text-gray-400"></i> Pengaturan</h2>
+                        <p class="text-sm lg:text-base text-gray-500 font-medium">Kelola akun dan preferensi aplikasi.</p>
+                    </div>
+                    
+                    <!-- Profil Info -->
+                    <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-soft border border-emerald-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6 md:gap-8 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-50 rounded-full blur-2xl"></div>
+                        <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center ring-8 ring-emerald-50 relative overflow-hidden group flex-shrink-0 shadow-lg">
+                            <i class="fa-solid fa-user text-white text-4xl md:text-5xl"></i>
+                            <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-sm" onclick="openEditProfileModal()">
+                                <i class="fa-solid fa-camera text-white mb-1"></i>
+                                <span class="text-[10px] text-white font-bold uppercase tracking-wider">Ubah</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative z-10 w-full">
+                            <div class="inline-flex items-center justify-center md:justify-start gap-2 bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest mb-3 w-max mx-auto md:mx-0">
+                                <i class="fa-solid fa-star"></i> Pahlawan Bumi
+                            </div>
+                            <h3 id="display-name-settings" class="font-black text-2xl md:text-3xl text-gray-800 mb-1">Budi Santoso</h3>
+                            <p id="display-email-settings" class="text-gray-500 text-sm md:text-base font-medium mb-6">budi.bumi@email.com</p>
+                            <button onclick="openEditProfileModal()" class="w-full md:w-auto bg-gray-50 border border-gray-200 text-gray-700 font-bold px-6 py-3.5 rounded-xl text-sm hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit Profil
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preferensi Aplikasi -->
+                    <div class="space-y-3 md:space-y-4 pt-2">
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 md:mb-4">Preferensi Sistem</h4>
+                        
+                        <!-- Toggle Suara -->
+                        <div class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft border border-emerald-50 flex justify-between items-center hover:border-emerald-200 transition-colors group cursor-pointer" onclick="toggleSound()">
+                            <div class="flex items-center gap-4 md:gap-5">
+                                <div id="settings-sound-icon" class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 text-emerald-500 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                                    <i class="fa-solid fa-volume-high text-lg md:text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-black text-gray-800 text-base md:text-lg">Suara Interaksi</p>
+                                    <p class="text-[10px] md:text-xs text-gray-500 mt-0.5 hidden md:block">Efek suara dan musik latar aplikasi</p>
+                                </div>
+                            </div>
+                            <button id="settings-sound-toggle" class="w-14 md:w-16 h-8 md:h-9 rounded-full flex items-center transition-all duration-300 px-1 bg-emerald-500 justify-end shadow-inner cursor-pointer relative">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-white rounded-full shadow-md"></div>
+                            </button>
+                        </div>
+                        
+                        <!-- Toggle Notifikasi (Ditambahkan kembali) -->
+                        <div class="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft border border-emerald-50 flex justify-between items-center hover:border-blue-200 transition-colors group cursor-pointer" onclick="toggleNotif()">
+                            <div class="flex items-center gap-4 md:gap-5">
+                                <div id="settings-notif-icon" class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl md:rounded-2xl bg-blue-50 text-blue-500 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                                    <i id="notif-icon-inner" class="fa-solid fa-bell text-lg md:text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-black text-gray-800 text-base md:text-lg">Notifikasi Pengingat</p>
+                                    <p class="text-[10px] md:text-xs text-gray-500 mt-0.5 hidden md:block">Pengingat waktu belajar harian</p>
+                                </div>
+                            </div>
+                            <button id="settings-notif-toggle" class="w-14 md:w-16 h-8 md:h-9 rounded-full flex items-center transition-all duration-300 px-1 bg-emerald-500 justify-end shadow-inner relative cursor-pointer">
+                                <div class="w-6 h-6 md:w-7 md:h-7 bg-white rounded-full shadow-md"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tentang Aplikasi (Ditambahkan kembali) -->
+                    <div class="space-y-4 pt-4 md:pt-6">
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 md:mb-4">Informasi</h4>
+                        
+                        <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] shadow-soft border border-emerald-50 overflow-hidden">
+                            <!-- Versi Aplikasi -->
+                            <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center gap-4 md:gap-5">
+                                    <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 shadow-inner">
+                                        <i class="fa-solid fa-code-branch"></i>
+                                    </div>
+                                    <div><p class="font-bold text-gray-800 text-sm md:text-base">Versi Aplikasi</p></div>
+                                </div>
+                                <span class="bg-gray-100 text-gray-500 font-bold px-3 py-1 rounded-lg text-xs md:text-sm">v2.5.0 (Stabil)</span>
+                            </div>
+                            
+                            <!-- Hak Cipta -->
+                            <div class="flex justify-between items-center p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center gap-4 md:gap-5">
+                                    <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 shadow-inner">
+                                        <i class="fa-solid fa-copyright"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800 text-sm md:text-base">Hak Cipta</p>
+                                        <p class="text-[10px] md:text-xs text-gray-500 mt-0.5">Dibuat oleh I Pt Pradnyana Wijaya</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] md:text-xs font-bold text-gray-400">© 2026 Sampah Pintar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 md:pt-8 flex justify-center">
+                        <button onclick="showLogoutModal()" class="w-full md:w-auto md:min-w-[250px] py-4 text-red-500 font-black bg-red-50 hover:bg-red-500 hover:text-white rounded-[1.5rem] active:scale-95 transition-all duration-300 flex justify-center items-center gap-3 border border-red-100 hover:shadow-lg hover:shadow-red-500/30 group">
+                            <i class="fa-solid fa-arrow-right-from-bracket group-hover:-translate-x-1 transition-transform"></i> Keluar Akun
+                        </button>
+                    </div>
+                </div>
+
+                <!-- IMMERSIVE VIEWS (Artikel & Video) -->
+                <div id="view-article" class="hidden fixed lg:absolute inset-0 bg-surface z-[100] flex flex-col items-center w-full h-full">
+                    <!-- Header Immersive Artikel (Konsisten Gradient) -->
+                    <div class="w-full bg-gradient-to-r from-emerald-600 to-teal-700 shadow-md flex items-center gap-4 px-4 py-3 md:px-8 md:py-4 sticky top-0 z-30">
+                        <button onclick="closeImmersive()" class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors flex items-center justify-center border border-white/30"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="article-title-header" class="font-bold flex-1 truncate text-white tracking-wide">Materi Belajar</span>
+                    </div>
+                    
+                    <div class="w-full flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 lg:p-10 flex justify-center pb-32 md:pb-10 relative">
+                        <div class="w-full max-w-3xl bg-white p-5 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-soft border border-emerald-50 h-fit relative z-10">
+                            <div id="article-cover" class="w-full h-48 md:h-72 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-10 shadow-inner relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500"></div>
+                                <i id="article-icon" class="fa-solid fa-book-open text-6xl md:text-9xl text-white opacity-90 z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-700"></i>
+                            </div>
+                            
+                            <div class="space-y-3 md:space-y-4 mb-6 md:mb-10">
+                                <div class="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">
+                                    <span id="article-time" class="bg-gray-50 border border-gray-100 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2"><i class="fa-regular fa-clock text-gray-400"></i> </span>
+                                    <span class="bg-emerald-50 border border-emerald-100 text-emerald-600 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2"><i class="fa-solid fa-graduation-cap"></i> Modul Belajar</span>
+                                </div>
+                                <h2 id="article-title" class="text-2xl md:text-4xl lg:text-5xl font-black leading-tight text-gray-900 tracking-tight"></h2>
+                            </div>
+                            
+                            <hr class="border-gray-50 mb-6 md:mb-10 border-2 rounded-full">
+                            
+                            <div id="article-content" class="w-full text-gray-700 text-sm md:text-base"></div>
+                            
+                            <div class="pt-8 md:pt-10 mt-10 md:mt-16 relative">
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 md:w-16 h-1 bg-gray-100 rounded-full"></div>
+                                <button onclick="finishArticle()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black py-4 md:py-6 rounded-[1.5rem] shadow-header hover:shadow-lg active:scale-95 transition-all text-base md:text-xl flex items-center justify-center gap-3 overflow-hidden relative group">
+                                    <span class="relative z-10 flex items-center gap-2 md:gap-3"><i class="fa-solid fa-check-circle text-xl md:text-2xl group-hover:rotate-12 transition-transform"></i> Selesai Membaca (+50 Poin)</span>
+                                    <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area Pemutar Video -->
+                <div id="view-video" class="hidden fixed lg:absolute inset-0 bg-gray-950 z-[100] flex flex-col text-white w-full h-full">
+                    <div class="absolute top-4 left-4 md:top-6 md:left-6 z-50 flex gap-4 items-start">
+                        <button onclick="closeImmersive()" class="w-10 h-10 md:w-12 md:h-12 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all duration-300 shadow-lg border border-white/10 flex items-center justify-center"><i class="fa-solid fa-chevron-left text-lg md:text-xl"></i></button>
+                    </div>
+                    
+                    <div class="absolute top-4 right-4 md:top-6 md:right-6 z-50 pointer-events-none hidden md:flex flex-col items-end">
+                        <h2 id="video-title" class="font-bold text-lg md:text-xl text-white drop-shadow-md text-right max-w-md"></h2>
+                        <div id="video-source-badge" class="mt-2 md:mt-3 bg-black/50 backdrop-blur-md border border-white/10 text-gray-200 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-clapperboard text-emerald-400"></i> <span id="video-source-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-center w-full h-full relative">
+                        <video id="actual-video-player" class="w-full h-auto max-h-full md:max-w-5xl shadow-2xl z-10 bg-black" controls controlsList="nodownload">
+                            <source id="video-source" src="" type="video/mp4">
+                            Browser Anda tidak mendukung tag video.
+                        </video>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Bottom Navigation Mobile/Tablet -->
+            <nav id="bottom-nav" class="lg:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[92%] max-w-md glass backdrop-blur-xl border border-white/80 px-2 py-2.5 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.1)] z-50 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                <div class="flex justify-around items-center relative">
+                    <button onclick="switchMainTab('home')" class="nav-btn-mobile flex-1 flex flex-col items-center justify-center py-1.5 relative group" data-target="home">
+                        <div class="icon-bg absolute inset-0 bg-emerald-100 rounded-2xl scale-90 opacity-100 transition-all duration-300"></div>
+                        <i class="fa-solid fa-house text-lg md:text-xl text-emerald-600 relative z-10 mb-1 transition-all duration-300 group-hover:-translate-y-1"></i>
+                        <span class="label text-[10px] font-bold text-emerald-700 relative z-10 transition-all duration-300 opacity-100 translate-y-0">Beranda</span>
+                    </button>
+                    
+                    <button onclick="switchMainTab('learn')" class="nav-btn-mobile flex-1 flex flex-col items-center justify-center py-1.5 relative group" data-target="learn">
+                        <div class="icon-bg absolute inset-0 bg-transparent rounded-2xl scale-50 opacity-0 transition-all duration-300"></div>
+                        <i class="fa-solid fa-book-open text-lg md:text-xl text-gray-400 relative z-10 mb-1 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-emerald-500"></i>
+                        <span class="label text-[10px] font-bold text-gray-500 relative z-10 transition-all duration-300 opacity-0 translate-y-2 absolute">Belajar</span>
+                    </button>
+                    
+                    <button onclick="switchMainTab('quiz')" class="nav-btn-mobile flex-1 flex flex-col items-center justify-center py-1.5 relative group" data-target="quiz">
+                        <div class="icon-bg absolute inset-0 bg-transparent rounded-2xl scale-50 opacity-0 transition-all duration-300"></div>
+                        <i class="fa-solid fa-gamepad text-lg md:text-xl text-gray-400 relative z-10 mb-1 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-emerald-500"></i>
+                        <span class="label text-[10px] font-bold text-gray-500 relative z-10 transition-all duration-300 opacity-0 translate-y-2 absolute">Kuis</span>
+                    </button>
+                    
+                    <button onclick="switchMainTab('settings')" class="nav-btn-mobile flex-1 flex flex-col items-center justify-center py-1.5 relative group" data-target="settings">
+                        <div class="icon-bg absolute inset-0 bg-transparent rounded-2xl scale-50 opacity-0 transition-all duration-300"></div>
+                        <i class="fa-solid fa-gear text-lg md:text-xl text-gray-400 relative z-10 mb-1 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-emerald-500"></i>
+                        <span class="label text-[10px] font-bold text-gray-500 relative z-10 transition-all duration-300 opacity-0 translate-y-2 absolute">Profil</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Mengembalikan Konten Materi Secara Penuh (Rich HTML)
+        const MATERI_LIST = [
+            { 
+                id: 1, 
+                title: 'Definisi & Pengenalan Sampah', 
+                desc: 'Kenali apa itu sampah dan darimana asalnya.', 
+                time: '3 Menit', 
+                color: 'bg-gradient-to-br from-blue-400 to-indigo-500', 
+                iconColor: 'text-white', 
+                content: `
+                    <div class="space-y-6">
+                        <p class="text-gray-700 leading-relaxed md:text-lg text-justify font-medium">Secara umum, <strong>sampah</strong> adalah sisa kegiatan manusia atau proses alam yang sudah tidak digunakan lagi dan dibuang. Tanpa pengelolaan yang baik, sampah bisa menjadi sumber penyakit dan merusak keindahan lingkungan kita.</p>
+                        
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 md:p-8 rounded-[2rem] border border-blue-100 shadow-inner my-8 relative overflow-hidden group">
+                            <div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-house-chimney text-9xl text-blue-500"></i></div>
+                            <h4 class="font-black text-blue-800 mb-3 flex items-center gap-3 text-lg md:text-xl relative z-10"><div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-house-chimney"></i></div> Sumber Utama Sampah</h4>
+                            <p class="text-blue-900 leading-relaxed text-justify relative z-10">Sampah di bumi ini sebagian besar dapat berasal dari berbagai sumber aktivitas, antara lain: <strong>rumah tangga</strong> (sisa dapur, plastik belanja), <strong>industri</strong> (limbah sisa pabrik), maupun <strong>lingkungan sekitar</strong> (daun gugur, ranting pohon).</p>
+                        </div>
+                        
+                        <h3 class="text-2xl md:text-3xl font-black text-gray-800 border-b-4 border-emerald-100 inline-block pb-1 mt-8 mb-4">Tiga Jenis Utama</h3>
+                        <p class="text-gray-700 leading-relaxed mb-6">Secara garis besar, untuk memudahkan pengelolaannya, sampah dibagi menjadi tiga jenis utama:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <!-- Organik Card -->
+                            <div class="border border-gray-100 bg-white p-6 rounded-[2rem] shadow-soft hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-5 shadow-inner"><i class="fa-solid fa-leaf"></i></div>
+                                <h4 class="font-black text-gray-800 text-lg mb-2">Sampah Organik</h4>
+                                <p class="text-sm text-gray-500 leading-relaxed">Sampah alami dari makhluk hidup yang mudah membusuk dan terurai oleh alam.</p>
+                            </div>
+                            
+                            <!-- Anorganik Card -->
+                            <div class="border border-gray-100 bg-white p-6 rounded-[2rem] shadow-soft hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-5 shadow-inner"><i class="fa-solid fa-box-open"></i></div>
+                                <h4 class="font-black text-gray-800 text-lg mb-2">Sampah Anorganik</h4>
+                                <p class="text-sm text-gray-500 leading-relaxed">Sampah buatan/sintetis yang sangat sulit dan butuh waktu lama untuk terurai.</p>
+                            </div>
+                            
+                            <!-- B3 Card -->
+                            <div class="border border-gray-100 bg-white p-6 rounded-[2rem] shadow-soft hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                                <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-2xl mb-5 shadow-inner"><i class="fa-solid fa-skull-crossbones"></i></div>
+                                <h4 class="font-black text-gray-800 text-lg mb-2">Sampah B3</h4>
+                                <p class="text-sm text-gray-500 leading-relaxed">Bahan berbahaya & beracun yang mengancam kesehatan dan ekosistem alam.</p>
+                            </div>
+                        </div>
+                    </div>
+                ` 
+            },
+            { 
+                id: 2, 
+                title: 'Mengenal Karakteristik 3 Jenis Sampah', 
+                desc: 'Pahami perbedaan Organik, Anorganik, dan B3.', 
+                time: '5 Menit', 
+                color: 'bg-gradient-to-br from-emerald-400 to-teal-500', 
+                iconColor: 'text-white', 
+                content: `
+                    <div class="space-y-12">
+                        <!-- Organik Section -->
+                        <div class="relative pl-8 md:pl-10 border-l-4 border-emerald-500">
+                            <div class="absolute -left-6 top-0 w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/40"><i class="fa-solid fa-leaf text-xl"></i></div>
+                            <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-4">Sampah Organik</h3>
+                            <p class="text-gray-700 mb-6 text-justify md:text-lg leading-relaxed">Sampah organik adalah sampah yang <strong>mudah terurai secara alami</strong> oleh mikroorganisme tanpa campuran bahan kimia. Sampah ini bisa dimanfaatkan kembali menjadi pupuk kompos, energi biogas, atau pakan ternak.</p>
+                            
+                            <div class="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100 grid md:grid-cols-2 gap-6">
+                                <div class="bg-white p-5 rounded-3xl shadow-sm border border-emerald-50">
+                                    <strong class="text-emerald-700 flex items-center gap-3 mb-2 text-lg font-black"><div class="p-2 bg-emerald-100 rounded-xl"><i class="fa-solid fa-droplet"></i></div> Organik Basah</strong> 
+                                    <p class="text-sm text-gray-600 leading-relaxed mb-3">Memiliki kandungan air yang tinggi sehingga sangat cepat membusuk dan menimbulkan bau.</p>
+                                    <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 inline-block px-3 py-1.5 rounded-lg uppercase tracking-wider">Contoh: Sisa makanan, sayur</div>
+                                </div>
+                                <div class="bg-white p-5 rounded-3xl shadow-sm border border-emerald-50">
+                                    <strong class="text-emerald-700 flex items-center gap-3 mb-2 text-lg font-black"><div class="p-2 bg-emerald-100 rounded-xl"><i class="fa-solid fa-wind"></i></div> Organik Kering</strong> 
+                                    <p class="text-sm text-gray-600 leading-relaxed mb-3">Kandungan air lebih rendah, proses pembusukannya terjadi lebih lambat.</p>
+                                    <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 inline-block px-3 py-1.5 rounded-lg uppercase tracking-wider">Contoh: Daun kering, ranting</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-center w-full mt-2">
+                                <img src="sampah org.jpg" alt="Daun Kering" class="w-full object-cover rounded-xl border-2 border-emerald-100 shadow-sm">
+                            </div>
+                        </div>
+
+                        <!-- Anorganik Section -->
+                        <div class="relative pl-8 md:pl-10 border-l-4 border-amber-500">
+                            <div class="absolute -left-6 top-0 w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/40"><i class="fa-solid fa-wine-bottle text-xl"></i></div>
+                            <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-4">Sampah Anorganik</h3>
+                            <p class="text-gray-700 mb-4 text-justify md:text-lg leading-relaxed">Berbeda dengan sampah organik, sampah anorganik <strong>sangat sulit terurai secara alami</strong> karena terbuat dari bahan sintetis atau telah melalui proses pengolahan panjang oleh manusia.</p>
+                            <p class="text-gray-700 mb-6 text-justify md:text-lg leading-relaxed">Waktu hancurnya di tanah bisa memakan waktu puluhan bahkan ratusan tahun! Solusi terbaiknya adalah mendaur ulang (<em class="text-amber-600 font-bold">recycle</em>) menjadi barang baru.</p>
+                            
+                            <h4 class="font-bold text-xs text-amber-500 uppercase tracking-widest mb-4 bg-amber-50 inline-block px-3 py-1 rounded-lg">Contoh Material Anorganik</h4>
+                            <div class="flex flex-wrap gap-3">
+                                <span class="bg-white border border-gray-200 shadow-sm text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:border-amber-400 hover:text-amber-600 transition-colors cursor-default"><i class="fa-solid fa-bottle-water text-amber-400"></i> Plastik</span>
+                                <span class="bg-white border border-gray-200 shadow-sm text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:border-amber-400 hover:text-amber-600 transition-colors cursor-default"><i class="fa-solid fa-glass-water text-amber-400"></i> Kaca</span>
+                                <span class="bg-white border border-gray-200 shadow-sm text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:border-amber-400 hover:text-amber-600 transition-colors cursor-default"><i class="fa-solid fa-cubes text-amber-400"></i> Logam & Kaleng</span>
+                                <span class="bg-white border border-gray-200 shadow-sm text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:border-amber-400 hover:text-amber-600 transition-colors cursor-default"><i class="fa-solid fa-box text-amber-400"></i> Styrofoam</span>
+                            </div>
+                            <div class="flex justify-center w-full mt-2">
+                                <img src="sampah anorgnk.jpg" alt="Daun Kering" class="w-full object-cover rounded-xl border-2 border-emerald-100 shadow-sm">
+                            </div>
+                        </div>
+
+                        <!-- B3 Section -->
+                        <div class="relative pl-8 md:pl-10 border-l-4 border-red-500">
+                            <div class="absolute -left-6 top-0 w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-red-500/40"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
+                            <h3 class="text-2xl md:text-3xl font-black text-gray-800 mb-4">Sampah Berbahaya & Beracun (B3)</h3>
+                            <p class="text-gray-700 mb-6 text-justify md:text-lg leading-relaxed">Sampah B3 adalah sampah yang mengandung zat kimia aktif atau beracun. Sampah jenis ini sama sekali tidak boleh dibuang sembarangan ke tanah atau sungai karena dapat <strong>merusak ekosistem dan mengancam nyawa manusia</strong>.</p>
+                            
+                            <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-[2rem] p-6 md:p-8 border border-red-100 shadow-inner">
+                                <h4 class="font-black text-red-800 mb-5 flex items-center gap-3"><div class="bg-red-100 p-2 rounded-xl text-red-500"><i class="fa-solid fa-ban"></i></div> Contoh Limbah B3 Rumah Tangga:</h4>
+                                <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-red-900 font-semibold text-sm md:text-base">
+                                    <li class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-red-50 hover:shadow-md transition-shadow"><div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-battery-half"></i></div> Baterai Bekas</li>
+                                    <li class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-red-50 hover:shadow-md transition-shadow"><div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-computer"></i></div> Limbah Elektronik</li>
+                                    <li class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-red-50 hover:shadow-md transition-shadow"><div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-pills"></i></div> Obat Kadaluarsa</li>
+                                    <li class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-red-50 hover:shadow-md transition-shadow"><div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-lightbulb"></i></div> Lampu Neon Putus</li>
+                                </ul>
+                            </div>
+                            <div class="flex justify-center w-full mt-2">
+                                <img src="sampah Berbahaya.png" alt="Daun Kering" class="w-full object-cover rounded-xl border-2 border-emerald-100 shadow-sm">
+                            </div>
+                        </div>
+                    </div>
+                ` 
+            },
+            { 
+                id: 3, 
+                title: 'Konsep Pengolahan Sampah (3R)', 
+                desc: 'Reduce, Reuse, Recycle untuk bumi yang lebih baik.', 
+                time: '4 Menit', 
+                color: 'bg-gradient-to-br from-purple-400 to-fuchsia-500', 
+                iconColor: 'text-white', 
+                content: `
+                    <div class="space-y-8">
+                        <p class="text-gray-700 text-lg md:text-xl text-justify mb-4 leading-relaxed font-medium">Mencegah penumpukan sampah di bumi tidak harus menunggu langkah besar. Semuanya bisa dimulai dari kebiasaan kecil kita sehari-hari dengan menerapkan prinsip <strong>3R</strong>.</p>
+
+                        <!-- Reduce -->
+                        <div class="bg-white border border-gray-100 rounded-[2.5rem] p-6 md:p-10 shadow-soft hover:shadow-xl hover:-translate-y-2 transition-all duration-500 relative overflow-hidden group">
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-rose-50 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                            
+                            <div class="flex items-center gap-5 mb-6 relative z-10">
+                                <div class="w-16 h-16 bg-gradient-to-br from-rose-400 to-rose-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-lg shadow-rose-200 transform group-hover:rotate-12 transition-transform duration-300"><i class="fa-solid fa-minus text-3xl"></i></div>
+                                <div>
+                                    <p class="font-black text-rose-500 uppercase tracking-widest text-[10px] md:text-xs mb-1 bg-rose-50 px-2 py-1 rounded-md inline-block border border-rose-100">1. Mengurangi</p>
+                                    <h3 class="text-3xl md:text-4xl font-black text-gray-800 tracking-tight">REDUCE</h3>
+                                </div>
+                            </div>
+                            
+                            <p class="text-gray-600 md:text-lg text-justify leading-relaxed relative z-10 mb-6">Merupakan langkah pencegahan pertama. Yaitu mengurangi pemakaian barang-barang yang dapat menghasilkan sampah, khususnya barang berbahan plastik sekali pakai.</p>
+                            
+                            <div class="bg-rose-50/80 p-5 rounded-3xl border border-rose-100 relative z-10 flex gap-4 items-start">
+                                <div class="bg-white p-2.5 rounded-xl shadow-sm text-rose-500 mt-1"><i class="fa-solid fa-lightbulb"></i></div>
+                                <p class="text-sm md:text-base text-rose-900 leading-relaxed font-medium"><strong>Aksi Nyata:</strong> Selalu membawa botol minum sendiri (tumbler), atau menolak sedotan plastik saat jajan di luar.</p>
+                            </div>
+                        </div>
+
+                        <!-- Reuse -->
+                        <div class="bg-white border border-gray-100 rounded-[2.5rem] p-6 md:p-10 shadow-soft hover:shadow-xl hover:-translate-y-2 transition-all duration-500 relative overflow-hidden group">
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                            
+                            <div class="flex items-center gap-5 mb-6 relative z-10">
+                                <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-lg shadow-indigo-200 transform group-hover:-rotate-12 transition-transform duration-300"><i class="fa-solid fa-repeat text-3xl"></i></div>
+                                <div>
+                                    <p class="font-black text-indigo-500 uppercase tracking-widest text-[10px] md:text-xs mb-1 bg-indigo-50 px-2 py-1 rounded-md inline-block border border-indigo-100">2. Menggunakan Kembali</p>
+                                    <h3 class="text-3xl md:text-4xl font-black text-gray-800 tracking-tight">REUSE</h3>
+                                </div>
+                            </div>
+                            
+                            <p class="text-gray-600 md:text-lg text-justify leading-relaxed relative z-10 mb-6">Yaitu menggunakan kembali barang yang masih bisa dipakai dan fungsinya belum hilang, baik untuk tujuan yang sama maupun dialihfungsikan.</p>
+                            
+                            <div class="bg-indigo-50/80 p-5 rounded-3xl border border-indigo-100 relative z-10 flex gap-4 items-start">
+                                <div class="bg-white p-2.5 rounded-xl shadow-sm text-indigo-500 mt-1"><i class="fa-solid fa-lightbulb"></i></div>
+                                <p class="text-sm md:text-base text-indigo-900 leading-relaxed font-medium"><strong>Aksi Nyata:</strong> Memakai tas belanja kain (totebag) berulang kali, atau menyulap kaleng biskuit bekas jadi kotak pensil.</p>
+                            </div>
+                        </div>
+
+                        <!-- Recycle -->
+                        <div class="bg-white border border-gray-100 rounded-[2.5rem] p-6 md:p-10 shadow-soft hover:shadow-xl hover:-translate-y-2 transition-all duration-500 relative overflow-hidden group">
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-50 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                            
+                            <div class="flex items-center gap-5 mb-6 relative z-10">
+                                <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-lg shadow-emerald-200 transform group-hover:rotate-180 transition-transform duration-700"><i class="fa-solid fa-recycle text-3xl"></i></div>
+                                <div>
+                                    <p class="font-black text-emerald-500 uppercase tracking-widest text-[10px] md:text-xs mb-1 bg-emerald-50 px-2 py-1 rounded-md inline-block border border-emerald-100">3. Mendaur Ulang</p>
+                                    <h3 class="text-3xl md:text-4xl font-black text-gray-800 tracking-tight">RECYCLE</h3>
+                                </div>
+                            </div>
+                            
+                            <p class="text-gray-600 md:text-lg text-justify leading-relaxed relative z-10 mb-6">Merupakan proses pengolahan bahan sampah atau barang bekas yang sudah tidak bernilai menjadi produk baru yang lebih bermanfaat atau memiliki nilai jual.</p>
+                            
+                            <div class="bg-emerald-50/80 p-5 rounded-3xl border border-emerald-100 relative z-10 flex gap-4 items-start">
+                                <div class="bg-white p-2.5 rounded-xl shadow-sm text-emerald-500 mt-1"><i class="fa-solid fa-lightbulb"></i></div>
+                                <p class="text-sm md:text-base text-emerald-900 leading-relaxed font-medium"><strong>Aksi Nyata:</strong> Menyatukan sisa sayuran (organik) ke komposter untuk pupuk, atau mengubah botol plastik jadi pot gantung cantik.</p>
+                            </div>
+                        </div>
+                    </div>
+                ` 
+            }
+        ];
+
+        // Mengembalikan File Video Secara Penuh
+        const VIDEO_LIST = [
+            { id: 1, title: 'Media Pembelajaran Pendidikan Lingkungan Hidup', src: 'media_pembelajaran.mp4', duration: '9:38', thumb: 'bg-gradient-to-br from-emerald-400 to-teal-500', sourceName: 'Yoleps Studio' },
+            { id: 2, title: 'Kita Pilah Sampah', src: 'kita_pilah_sampah.mp4', duration: '5:29', thumb: 'bg-gradient-to-br from-indigo-400 to-purple-500', sourceName: 'Yayasan Lions' },
+            { id: 3, title: 'tanggung_jawabku.mp4', duration: '3.27', thumb: 'bg-gradient-to-br from-orange-400 to-red-500', sourceName: 'Apix Media Channel' },
+        ];
+        
+        // Mengembalikan Total 15 Soal Kuis (Bukan 5)
+        const QUIZ_QUESTIONS = [
+            { question: "Secara umum, apa yang dimaksud dengan sampah?", options: ["Sisa kegiatan manusia/alam yang dibuang", "Barang baru yang siap pakai", "Bahan alami yang bernilai tinggi", "Produk sisa pabrik"], answer: 0 },
+            { question: "Sampah sisa dapur termasuk sampah dari?", options: ["Industri", "Rumah Tangga", "Lingkungan", "Luar Angkasa"], answer: 1 },
+            { question: "Daun gugur dan ranting pohon yang berjatuhan merupakan contoh sampah dari sumber...", options: ["Pabrik", "Rumah Tangga", "Lingkungan Sekitar", "Limbah Elektronik"], answer: 2 },
+            { question: "Mengapa sampah harus dikelola dengan baik?", options: ["Agar menumpuk di rumah", "Agar menjadi sumber penyakit", "Agar lingkungan tidak rusak dan tetap indah", "Agar baunya menyebar luas"], answer: 2 },
+            { question: "Sampah sisa pabrik dikategorikan sebagai sampah dari sumber...", options: ["Rumah Tangga", "Industri", "Sekolah", "Alam"], answer: 1 },
+            { question: "Sampah yang mudah terurai secara alami oleh mikroorganisme disebut...", options: ["Sampah Organik", "Sampah Anorganik", "Sampah B3", "Sampah Kertas"], answer: 0 },
+            { question: "Contoh sampah organik adalah...", options: ["Botol plastik", "Sisa makanan", "Pecahan kaca", "Baterai bekas"], answer: 1 },
+            { question: "Apa ciri utama dari sampah organik basah?", options: ["Kering dan keras", "Mengandung bahan kimia", "Memiliki kandungan air tinggi", "Terbuat dari plastik"], answer: 2 },
+            { question: "Contoh dari sampah organik basah adalah...", options: ["Daun kering", "Ranting pohon", "Potongan sayur dan buah", "Bungkus mi instan"], answer: 2 },
+            { question: "Contoh dari sampah organik kering adalah...", options: ["Sisa nasi", "Sayur basi", "Rumput dan ranting pohon", "Sisa kuah sup"], answer: 2 },
+            { question: "Sampah organik dapat dimanfaatkan kembali menjadi...", options: ["Pupuk kompos", "Bahan bakar kendaraan", "Pakaian", "Bahan bangunan"], answer: 0 },
+            { question: "Apa yang membedakan sampah anorganik dari sampah organik?", options: ["Mudah membusuk", "Berasal dari makhluk hidup", "Sangat sulit terurai secara alami", "Bisa dijadikan pupuk"], answer: 2 },
+            { question: "Mengapa sampah anorganik sulit hancur di alam?", options: ["Karena terbuat dari bahan sintetis/olahan", "Karena dimakan hewan", "Karena terkena hujan", "Karena harganya mahal"], answer: 0 },
+            { question: "Apa kepanjangan dari B3?", options: ["Bahan Berguna", "Bahan Berbahaya & Beracun", "Barang Bekas", "Bahan Baru"], answer: 1 },
+            { question: "Tujuan 3R adalah?", options: ["Membuat sampah baru", "Mencegah penumpukan sampah", "Menghasilkan polusi", "Menambah limbah"], answer: 1 }
+        ];
+
+        let soundOn = true; let notifOn = true; let currentQIndex = 0; let score = 0; let selectedOption = null;
+        let currentUser = { name: "Budi Santoso", email: "budi@email.com" };
+        let isQuizActive = false; let quizTimerInterval = null; 
+        let timeLeft = 900; // Kembalikan ke 15 Menit (900 Detik)
+        let currentQuizQuestions = [];
+
+        // Mengembalikan Logika Background Music Penuh
+        const bgMusic = new Audio('music.mp3');
+        bgMusic.loop = true; 
+        bgMusic.volume = 0.4; 
+        let isLoggedIn = false;
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (!soundOn) return; initAudio();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playClick() { playTone(600, 'sine', 0.1, 0.05); }
+        function playPop() { playTone(800, 'sine', 0.1, 0.08); setTimeout(() => playTone(1200, 'sine', 0.1, 0.05), 50); }
+        function playSuccess() { playTone(523.25, 'sine', 0.1, 0.1); setTimeout(() => playTone(659.25, 'sine', 0.2, 0.1), 100); }
+        function playError() { playTone(300, 'sawtooth', 0.2, 0.1); }
+        function playTada() { playTone(523.25, 'triangle', 0.1, 0.1); setTimeout(() => playTone(1046.50, 'triangle', 0.6, 0.15), 300); }
+
+        window.onload = () => {
+            renderLearnLists();
+            document.body.addEventListener('click', () => { if(soundOn) initAudio(); }, { once: true });
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen'); const loginScreen = document.getElementById('login-screen');
+                splash.classList.add('fade-out'); loginScreen.classList.remove('hidden'); loginScreen.classList.add('fade-in');
+                setTimeout(() => { splash.style.display = 'none'; }, 500);
+            }, 2000);
+            updateMobileNavUI('home');
+
+            // Tambahkan pendengar event (event listener) pada pemutar video
+            const videoPlayer = document.getElementById('actual-video-player');
+            if (videoPlayer) {
+                // Saat video dimainkan, matikan musik latar
+                videoPlayer.addEventListener('play', () => {
+                    bgMusic.pause();
+                });
+                
+                // Saat video selesai, nyalakan kembali musik latar (jika pengaturan suara ON)
+                videoPlayer.addEventListener('ended', () => {
+                    if (soundOn && isLoggedIn) {
+                        bgMusic.play().catch(e => console.log("Audio play failed:", e));
+                    }
+                });
+            }
+        };
+
+        function handleLogin(event) {
+            event.preventDefault(); playPop();
+            currentUser.name = document.getElementById('input-name').value;
+            currentUser.email = document.getElementById('input-email').value;
+            updateProfileUI();
+
+            isLoggedIn = true;
+            bgMusic.currentTime = 0; 
+            if (soundOn) {
+                bgMusic.play().catch(e => console.log("Autoplay musik dicegah browser", e));
+            }
+
+            const loginScreen = document.getElementById('login-screen'); const mainApp = document.getElementById('main-app');
+            loginScreen.classList.remove('fade-in'); loginScreen.classList.add('fade-out');
+
+            setTimeout(() => {
+                loginScreen.classList.add('hidden'); loginScreen.classList.remove('fade-out');
+                mainApp.classList.remove('hidden'); mainApp.classList.add('fade-in'); mainApp.style.opacity = '1';
+                switchMainTab('home');
+            }, 400);
+        }
+
+        function updateProfileUI() {
+            document.getElementById('display-name-header').innerText = currentUser.name;
+            document.getElementById('display-name-settings').innerText = currentUser.name;
+            document.getElementById('display-email-settings').innerText = currentUser.email;
+        }
+
+        function showLogoutModal() { playClick(); document.getElementById('logout-modal').classList.remove('hidden', 'fade-out'); document.getElementById('logout-modal').classList.add('fade-in'); }
+        function cancelLogout() { playClick(); const m = document.getElementById('logout-modal'); m.classList.remove('fade-in'); m.classList.add('fade-out'); setTimeout(() => m.classList.add('hidden'), 400); }
+        
+        function executeLogout() {
+            playClick(); document.getElementById('logout-modal').classList.add('hidden');
+            
+            isLoggedIn = false;
+            bgMusic.pause(); 
+            bgMusic.currentTime = 0; 
+
+            const mainApp = document.getElementById('main-app'), loginScreen = document.getElementById('login-screen');
+            mainApp.classList.remove('fade-in'); mainApp.classList.add('fade-out');
+            setTimeout(() => { mainApp.classList.add('hidden'); mainApp.classList.remove('fade-out'); loginScreen.classList.remove('hidden'); loginScreen.classList.add('fade-in'); }, 400);
+        }
+
+        function openEditProfileModal() { playClick(); document.getElementById('edit-input-name').value = currentUser.name; document.getElementById('edit-input-email').value = currentUser.email; document.getElementById('edit-profile-modal').classList.remove('hidden', 'fade-out'); document.getElementById('edit-profile-modal').classList.add('fade-in'); }
+        function closeEditProfileModal() { playClick(); const m = document.getElementById('edit-profile-modal'); m.classList.remove('fade-in'); m.classList.add('fade-out'); setTimeout(() => m.classList.add('hidden'), 400); }
+        function saveProfile() { playClick(); const n = document.getElementById('edit-input-name').value.trim(), e = document.getElementById('edit-input-email').value.trim(); if (n === "" || e === "") return; currentUser.name = n; currentUser.email = e; updateProfileUI(); closeEditProfileModal(); }
+
+        function showQuizWarningModal() { playClick(); document.getElementById('quiz-warning-modal').classList.remove('hidden', 'fade-out'); document.getElementById('quiz-warning-modal').classList.add('fade-in'); }
+        function closeQuizWarningModal() { playClick(); const m = document.getElementById('quiz-warning-modal'); m.classList.remove('fade-in'); m.classList.add('fade-out'); setTimeout(() => m.classList.add('hidden'), 400); }
+
+        function toggleSound() {
+            soundOn = !soundOn; playPop();
+            
+            if(soundOn && isLoggedIn) {
+                bgMusic.play().catch(e => console.log("Audio play failed:", e));
+            } else {
+                bgMusic.pause(); 
+            }
+
+            const topBtn = document.getElementById('sound-btn');
+            topBtn.innerHTML = soundOn ? '<i class="fa-solid fa-volume-high text-lg"></i>' : '<i class="fa-solid fa-volume-xmark text-lg"></i>';
+            document.getElementById('settings-sound-icon').className = `w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl md:rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-300 ${soundOn ? 'bg-emerald-50 text-emerald-500' : 'bg-gray-50 text-gray-400'}`;
+            document.getElementById('settings-sound-icon').innerHTML = soundOn ? '<i class="fa-solid fa-volume-high text-xl"></i>' : '<i class="fa-solid fa-volume-xmark text-xl"></i>';
+            document.getElementById('settings-sound-toggle').className = `w-14 md:w-16 h-8 md:h-9 rounded-full flex items-center transition-all duration-300 px-1 shadow-inner relative ${soundOn ? 'bg-emerald-500 justify-end' : 'bg-gray-300 justify-start'}`;
+        }
+
+        function toggleNotif() {
+            notifOn = !notifOn; playPop();
+            document.getElementById('settings-notif-icon').className = `w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl md:rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-300 ${notifOn ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-400'}`;
+            document.getElementById('settings-notif-icon').innerHTML = notifOn ? '<i class="fa-solid fa-bell text-xl"></i>' : '<i class="fa-solid fa-bell-slash text-xl"></i>';
+            document.getElementById('settings-notif-toggle').className = `w-14 md:w-16 h-8 md:h-9 rounded-full flex items-center transition-all duration-300 px-1 shadow-inner relative ${notifOn ? 'bg-emerald-500 justify-end' : 'bg-gray-300 justify-start'}`;
+        }
+
+        function updateMobileNavUI(targetId) {
+            document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
+                const isTarget = btn.dataset.target === targetId;
+                const bg = btn.querySelector('.icon-bg'); const icon = btn.querySelector('i'); const label = btn.querySelector('.label');
+                if (isTarget) {
+                    bg.classList.remove('scale-50', 'opacity-0'); bg.classList.add('scale-90', 'opacity-100');
+                    icon.className = `fa-solid ${icon.className.split(' ')[1]} text-lg md:text-xl text-emerald-600 relative z-10 mb-1 transition-all duration-300`;
+                    label.classList.remove('opacity-0', 'translate-y-2', 'absolute'); label.classList.add('opacity-100', 'translate-y-0');
+                } else {
+                    bg.classList.remove('scale-90', 'opacity-100'); bg.classList.add('scale-50', 'opacity-0');
+                    icon.className = `fa-solid ${icon.className.split(' ')[1]} text-lg md:text-xl text-gray-400 relative z-10 mb-1 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-emerald-500`;
+                    label.classList.remove('opacity-100', 'translate-y-0'); label.classList.add('opacity-0', 'translate-y-2', 'absolute');
+                }
+            });
+        }
+
+        function switchMainTab(targetId) {
+            if (isQuizActive && targetId !== 'quiz') { showQuizWarningModal(); return; }
+            playPop();
+
+            // --- TUTUP OTOMATIS MATERI/VIDEO JIKA BERPINDAH MENU ---
+            const viewArticle = document.getElementById('view-article');
+            const viewVideo = document.getElementById('view-video');
+            
+            if (!viewArticle.classList.contains('hidden') || !viewVideo.classList.contains('hidden')) {
+                viewArticle.classList.add('hidden'); 
+                viewVideo.classList.add('hidden');
+                
+                const videoPlayer = document.getElementById('actual-video-player'); 
+                if(videoPlayer) { 
+                    videoPlayer.pause(); 
+                    videoPlayer.currentTime = 0; 
+                }
+                
+                // Nyalakan kembali musik jika sebelumnya terjeda karena video
+                if (soundOn && isLoggedIn && bgMusic.paused) {
+                    bgMusic.play().catch(e => console.log("Audio play failed:", e));
+                }
+            }
+            // -------------------------------------------------------
+
+            document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('animate-slide-up', 'block'); });
+            const targetView = document.getElementById(`view-${targetId}`); targetView.classList.remove('hidden'); targetView.classList.add('block', 'animate-slide-up');
+            
+            document.getElementById('app-header').classList.remove('hidden', '-translate-y-full', 'opacity-0'); 
+            document.getElementById('bottom-nav').classList.remove('translate-y-24', 'opacity-0');
+            
+            if (targetId === 'quiz') { document.getElementById('app-header').classList.add('hidden'); renderQuizIntro(); }
+
+            updateMobileNavUI(targetId);
+
+            document.querySelectorAll('.nav-btn-desktop').forEach(btn => {
+                const isTarget = btn.dataset.target === targetId;
+                btn.className = `nav-btn-desktop w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all duration-300 relative overflow-hidden group ${isTarget ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-header' : 'text-gray-500 hover:bg-emerald-50 hover:text-emerald-600'}`;
+            });
+        }
+
+        function switchLearnTab(type) {
+            playClick();
+            document.getElementById('tab-materi').className = `flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 relative z-10 ${type === 'materi' ? 'bg-white text-emerald-600 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-700 bg-transparent shadow-none border border-transparent'}`;
+            document.getElementById('tab-video').className = `flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 relative z-10 ${type === 'video' ? 'bg-white text-emerald-600 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-700 bg-transparent shadow-none border border-transparent'}`;
+            document.getElementById('list-materi').classList.toggle('hidden', type !== 'materi'); document.getElementById('list-materi').classList.toggle('animate-slide-right', type === 'materi');
+            document.getElementById('list-video').classList.toggle('hidden', type !== 'video'); document.getElementById('list-video').classList.toggle('animate-slide-right', type === 'video');
+        }
+
+        function openLearnTab(type) { switchMainTab('learn'); switchLearnTab(type); }
+
+        function renderLearnLists() {
+            document.getElementById('list-materi').innerHTML = MATERI_LIST.map(item => `
+                <div onclick="openArticle(${item.id})" class="bg-white p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-soft border border-emerald-50 flex flex-col gap-3 md:gap-4 cursor-pointer hover:shadow-xl hover:-translate-y-2 hover:border-emerald-200 transition-all duration-300 active:scale-[0.98] group relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-emerald-50 to-transparent rounded-bl-full opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] ${item.color} flex items-center justify-center flex-shrink-0 shadow-inner group-hover:rotate-6 transition-transform duration-300"><i class="fa-solid fa-book-open ${item.iconColor} text-xl md:text-2xl"></i></div>
+                        <div><h4 class="font-black text-gray-800 text-base md:text-lg leading-tight group-hover:text-emerald-600 transition-colors">${item.title}</h4></div>
+                    </div>
+                    <p class="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed flex-1">${item.desc}</p>
+                    <div class="flex items-center justify-between mt-2 pt-3 md:pt-4 border-t border-emerald-50/50">
+                        <div class="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-clock"></i> ${item.time} Belajar</div>
+                        <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors"><i class="fa-solid fa-arrow-right text-xs md:text-sm -rotate-45 group-hover:rotate-0 transition-transform"></i></div>
+                    </div>
+                </div>`).join('');
+                
+            document.getElementById('list-video').innerHTML = VIDEO_LIST.map(item => `
+                <div onclick="openVideo(${item.id})" class="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-soft border border-emerald-50 cursor-pointer hover:shadow-xl hover:-translate-y-2 hover:border-purple-200 transition-all duration-300 active:scale-[0.98] group flex flex-col">
+                    <div class="h-36 md:h-44 w-full ${item.thumb} relative flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+                        <div class="w-12 h-12 md:w-14 md:h-14 bg-white/30 backdrop-blur-sm border border-white/50 rounded-full flex items-center justify-center group-hover:scale-110 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 z-10"><i class="fa-solid fa-play text-white text-lg md:text-xl ml-1"></i></div>
+                        <div class="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-black/60 backdrop-blur-md text-white text-[9px] md:text-[10px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl uppercase tracking-wider border border-white/10 z-10">${item.duration}</div>
+                    </div>
+                    <div class="p-4 md:p-6 flex flex-col justify-between flex-1">
+                        <div>
+                            <h4 class="font-black text-gray-800 text-base md:text-lg leading-tight line-clamp-2 group-hover:text-purple-600 transition-colors">${item.title}</h4>
+                            <p class="text-[10px] md:text-xs text-gray-500 mt-1.5 md:mt-2 font-medium">Video Edukasi Interaktif</p>
+                        </div>
+                        <div class="pt-3 md:pt-4 border-t border-gray-50 mt-3 md:mt-4">
+                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-600 px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold flex items-center gap-1.5 md:gap-2 w-fit uppercase tracking-wider"><i class="fa-solid fa-clapperboard text-indigo-500"></i> ${item.sourceName}</span>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function openArticle(id) {
+            playPop(); const item = MATERI_LIST.find(m => m.id === id);
+            document.getElementById('article-title').innerText = item.title;
+            document.getElementById('article-time').innerHTML = `<i class="fa-regular fa-clock"></i> Est. ${item.time}`; 
+            document.getElementById('article-content').innerHTML = item.content;
+            document.getElementById('article-cover').className = `w-full h-48 md:h-72 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-10 shadow-inner relative overflow-hidden group ${item.color}`;
+            
+            document.getElementById('app-header').classList.add('hidden'); 
+            document.getElementById('bottom-nav').classList.add('translate-y-24', 'opacity-0');
+            document.getElementById('view-article').classList.remove('hidden'); document.getElementById('view-article').classList.add('animate-slide-up');
+        }
+        function finishArticle() { playSuccess(); alert("Selamat! Anda mendapatkan +50 Poin Eco."); closeImmersive(); }
+        
+        function openVideo(id) {
+            playPop(); const item = VIDEO_LIST.find(v => v.id === id);
+            document.getElementById('video-title').innerText = item.title;
+            document.getElementById('video-source-text').innerText = "Sumber: " + item.sourceName;
+            
+            const videoPlayer = document.getElementById('actual-video-player');
+            const videoSource = document.getElementById('video-source');
+            videoSource.src = item.src;
+            
+            // Jeda sementara saat transisi
+            bgMusic.pause();
+
+            videoPlayer.load();
+            videoPlayer.play();
+            
+            document.getElementById('app-header').classList.add('hidden'); 
+            document.getElementById('bottom-nav').classList.add('translate-y-24', 'opacity-0');
+            document.getElementById('view-video').classList.remove('hidden'); 
+            document.getElementById('view-video').classList.add('animate-zoom-in');
+        }
+
+        function closeImmersive() {
+            playClick(); 
+            document.getElementById('view-article').classList.add('hidden'); document.getElementById('view-video').classList.add('hidden');
+            const videoPlayer = document.getElementById('actual-video-player'); 
+            
+            // Matikan video jika ada
+            if(videoPlayer) { 
+                videoPlayer.pause(); 
+                videoPlayer.currentTime = 0; 
+            }
+            
+            if(document.getElementById('view-quiz').classList.contains('hidden')) document.getElementById('app-header').classList.remove('hidden', '-translate-y-full', 'opacity-0');
+            document.getElementById('bottom-nav').classList.remove('translate-y-24', 'opacity-0');
+
+            // Nyalakan kembali musik latar saat menutup halaman ini
+            if (soundOn && isLoggedIn) {
+                bgMusic.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+
+        // --- QUIZ LOGIC ---
+        function formatTime(seconds) { const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = (seconds % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
+        
+        function renderQuizIntro() {
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="m-auto px-4 md:px-6 py-8 md:py-10 flex flex-col items-center justify-center space-y-6 md:space-y-8 pb-32 animate-zoom-in w-full max-w-3xl relative">
+                    <div class="w-32 h-32 md:w-48 md:h-48 bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-float flex items-center justify-center mb-4 md:mb-8 relative border-4 md:border-8 border-surface transform hover:scale-105 transition-transform duration-500 animate-float">
+                        <div class="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 rounded-[1.5rem] md:rounded-[2rem] m-2 flex items-center justify-center shadow-inner overflow-hidden">
+                            <i class="fa-solid fa-brain text-5xl md:text-8xl text-white relative z-10"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center space-y-2 md:space-y-3 mb-6 md:mb-10 w-full">
+                        <h2 class="text-3xl md:text-6xl font-black text-gray-800 tracking-tight">Ujian <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">Pahlawan</span></h2>
+                        <p class="text-sm md:text-xl text-gray-500 max-w-lg mx-auto leading-relaxed mt-2 md:mt-4 font-medium">Buktikan pengetahuanmu dan kumpulkan poin eco!</p>
+                    </div>
+                    
+                    <div class="bg-white w-full max-w-xl rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-emerald-50 shadow-soft space-y-4 md:space-y-5">
+                        <div class="flex justify-between items-center bg-gray-50 p-4 md:p-5 rounded-[1.5rem] border border-gray-100">
+                            <div class="flex items-center gap-3 md:gap-4"><div class="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500"><i class="fa-solid fa-list-ol"></i></div><span class="font-bold text-gray-700 text-sm md:text-lg">Jumlah Soal</span></div>
+                            <span class="font-black text-gray-900 text-lg md:text-2xl">10<span class="text-[10px] md:text-sm text-gray-500 font-bold ml-1">Soal</span></span>
+                        </div>
+                        
+                        <!-- Dikembalikan: Info Batas Waktu Kuis -->
+                        <div class="flex justify-between items-center bg-gray-50 p-4 md:p-5 rounded-[1.5rem] border border-gray-100">
+                            <div class="flex items-center gap-3 md:gap-4"><div class="w-10 h-10 md:w-12 md:h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500"><i class="fa-solid fa-stopwatch"></i></div><span class="font-bold text-gray-700 text-sm md:text-lg">Batas Waktu</span></div>
+                            <span class="font-black text-gray-900 text-lg md:text-2xl">15<span class="text-[10px] md:text-sm text-gray-500 font-bold ml-1">Menit</span></span>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-emerald-50 p-4 md:p-5 rounded-[1.5rem] border border-emerald-100">
+                            <div class="flex items-center gap-3 md:gap-4"><div class="w-10 h-10 md:w-12 md:h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white"><i class="fa-solid fa-trophy"></i></div><span class="font-bold text-emerald-800 text-sm md:text-lg">Hadiah</span></div>
+                            <span class="font-black text-emerald-600 text-lg md:text-2xl">+100<span class="text-[10px] md:text-sm text-emerald-500 font-bold ml-1">Poin</span></span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startQuiz()" class="group w-full max-w-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:from-orange-600 active:to-orange-700 text-white font-black text-lg md:text-xl py-4 md:py-5 rounded-[1.5rem] shadow-[0_10px_20px_rgba(245,158,11,0.3)] hover:shadow-[0_15px_30px_rgba(245,158,11,0.5)] active:shadow-inner active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 mt-6 transform hover:-translate-y-1">
+                        Mulai Kuis Sekarang <i class="fa-solid fa-arrow-right transform group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </button>
+                </div>`;
+        }
+
+        function startQuiz() { 
+            playPop(); currentQIndex = 0; score = 0; isQuizActive = true; 
+            timeLeft = 900; // Kembalikan ke 15 Menit
+            
+            // Generate 10 Random Questions
+            currentQuizQuestions = [...QUIZ_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, 10);
+            
+            clearInterval(quizTimerInterval);
+            quizTimerInterval = setInterval(() => {
+                timeLeft--; const timerEl = document.getElementById('quiz-timer-display');
+                if (timerEl) { timerEl.innerText = formatTime(timeLeft); }
+                if (timeLeft <= 0) { clearInterval(quizTimerInterval); renderQuizResult(true); }
+            }, 1000);
+            renderQuizQuestion(); 
+        }
+
+        function renderQuizQuestion() {
+            selectedOption = null; const q = currentQuizQuestions[currentQIndex]; const letters = ['A', 'B', 'C', 'D'];
+            const progressPct = ((currentQIndex) / currentQuizQuestions.length) * 100;
+            
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="m-auto px-4 md:px-8 py-6 md:py-10 flex flex-col animate-slide-right pb-32 w-full max-w-4xl justify-center">
+                    <div class="flex items-center justify-between mb-4 md:mb-6">
+                        <div class="bg-white px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-gray-100 shadow-sm flex items-center gap-2 md:gap-3">
+                            <span class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-xs md:text-sm">${currentQIndex + 1}</span>
+                            <span class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">dari ${currentQuizQuestions.length}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-gray-100 shadow-sm text-sm md:text-base">
+                            <i class="fa-solid fa-clock text-amber-500"></i> <span id="quiz-timer-display" class="font-black text-gray-700">${formatTime(timeLeft)}</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full h-2 md:h-3 bg-gray-200 rounded-full mb-6 md:mb-10 overflow-hidden shadow-inner p-0.5">
+                        <div class="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-700" style="width: ${progressPct}%"></div>
+                    </div>
+                    
+                    <div class="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-soft border border-emerald-50 mb-6 md:mb-8 min-h-[140px] md:min-h-[240px] flex items-center justify-center text-center">
+                        <h2 class="text-lg md:text-3xl lg:text-4xl font-black text-gray-800 leading-snug w-full">${q.question}</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 w-full">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="selectAnswer(${i})" id="opt-${i}" class="animate-bounce-in w-full min-h-[70px] md:min-h-[90px] p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 border-transparent bg-white shadow-sm hover:shadow-md hover:border-amber-400 active:scale-95 flex items-center justify-between text-left group">
+                                <div class="flex items-center gap-4">
+                                    <span class="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-[1rem] bg-gray-50 border border-gray-100 text-gray-400 flex items-center justify-center font-black text-sm md:text-xl group-hover:bg-amber-400 group-hover:text-white transition-colors">${letters[i]}</span>
+                                    <span class="font-bold text-gray-700 text-sm md:text-xl">${opt}</span>
+                                </div>
+                                <i id="icon-${i}" class="fa-solid fa-circle-check text-white hidden text-2xl flex-shrink-0 ml-2"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>`;
+        }
+
+        function selectAnswer(index) {
+            if (selectedOption !== null || !isQuizActive) return; 
+            selectedOption = index; const q = currentQuizQuestions[currentQIndex]; const isCorrect = index === q.answer;
+            if (isCorrect) { score++; playSuccess(); } else { playError(); }
+            
+            for(let i=0; i<q.options.length; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                if (i === q.answer) {
+                    btn.className = "w-full min-h-[70px] md:min-h-[90px] p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 border-emerald-500 bg-emerald-500 shadow-header transition-all flex items-center justify-between z-10 text-left";
+                    btn.innerHTML = `<div class="flex items-center gap-4"><span class="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-[1rem] bg-white text-emerald-500 flex items-center justify-center font-black text-sm md:text-xl">${['A','B','C','D'][i]}</span><span class="font-bold text-white text-sm md:text-xl">${q.options[i]}</span></div><i class="fa-solid fa-circle-check text-white text-3xl md:text-4xl"></i>`;
+                } else if (i === index) {
+                    btn.className = "w-full min-h-[70px] md:min-h-[90px] p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 border-red-500 bg-red-50 transition-all flex items-center justify-between animate-shake z-10 text-left";
+                    btn.innerHTML = `<div class="flex items-center gap-4"><span class="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-[1rem] bg-red-500 text-white flex items-center justify-center font-black text-sm md:text-xl">${['A','B','C','D'][i]}</span><span class="font-bold text-red-700 text-sm md:text-xl">${q.options[i]}</span></div><i class="fa-solid fa-circle-xmark text-red-500 text-3xl md:text-4xl"></i>`;
+                } else {
+                    btn.classList.add('opacity-40', 'grayscale');
+                }
+            }
+            
+            setTimeout(() => { 
+                if(!isQuizActive) return; 
+                if (currentQIndex < currentQuizQuestions.length - 1) { currentQIndex++; renderQuizQuestion(); } 
+                else { renderQuizResult(false); } 
+            }, 1500); 
+        }
+
+        function renderQuizResult(isTimeout = false) {
+            isQuizActive = false; clearInterval(quizTimerInterval);
+            
+            // Syarat Lulus: minimal 7 benar dari 10
+            if (isTimeout) playError(); else if (score >= 7) playTada(); else playSuccess();
+
+            const finalScore = Math.round(score * 100 / currentQuizQuestions.length);
+            const rewardPoints = score * 10; 
+
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="m-auto p-6 md:p-10 flex flex-col items-center justify-center pt-10 pb-32 animate-zoom-in text-center max-w-xl w-full">
+                    <div class="w-40 h-40 md:w-56 md:h-56 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-600 shadow-header border-8 border-white z-10 mb-8">
+                        <i class="fa-solid fa-medal text-6xl md:text-8xl text-emerald-100"></i>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-black text-gray-800 mb-3 md:mb-4">${isTimeout ? 'Waktu Habis!' : 'Kuis Selesai!'}</h2>
+                    <p class="text-gray-600 text-sm md:text-lg font-medium bg-white px-5 py-2.5 rounded-2xl border border-emerald-50 shadow-sm">Skor: ${finalScore} - Menjawab ${score} dari ${currentQuizQuestions.length} benar.</p>
+                    
+                    <button onclick="switchMainTab('home')" class="w-full bg-gray-900 hover:bg-black text-white font-black text-base md:text-lg py-4 rounded-[1.5rem] shadow-md hover:-translate-y-1 active:scale-95 transition-all duration-300 mt-10">
+                        <i class="fa-solid fa-house mr-2"></i> Kembali ke Beranda
+                    </button>
+                </div>`;
+        }
+    </script>
+</body>
+</html>
